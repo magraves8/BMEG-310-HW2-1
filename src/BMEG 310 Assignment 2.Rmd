@@ -30,6 +30,8 @@ head(ovarian.dataset)
 
 ```{r}
 # Question 1 - Dimensionality Reduction
+
+
 ```
 
 ```{r}
