@@ -1,0 +1,56 @@
+---
+title: "BMEG 310 Assignment 2"
+author: "Group 14: Wesley Chan, Flora Deng, Mary Graves"
+date: "2022-10-17"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r warning=FALSE}
+# libraries
+library(ggplot2)
+library(ROCR)
+```
+
+```{r}
+# loading in data
+ovarian.dataset <- read.delim("ovarian.data", sep=",", header = FALSE)
+features <- c("perimeter", "area", "smoothness", "symmetry", "concavity",
+paste("protein", seq(1, 25) ))
+names(ovarian.dataset) <- c("cell_id", "diagnosis", features)
+
+# check data (REMOVE FOR SUBMISSION)
+head(ovarian.dataset)
+```
+
+```{r}
+# Question 1 - Dimensionality Reduction
+```
+
+```{r}
+# Question 2 - Clustering
+```
+
+```{r}
+# Question 3 - Classification
+
+# Divide data into training set and test set
+ovarian.dataset.train <- ovarian.dataset[sample(nrow(ovarian.dataset))
+  [1:(nrow(ovarian.dataset)/2)],]
+ovarian.dataset.test <- ovarian.dataset[sample(nrow(ovarian.dataset))
+  [(nrow(ovarian.dataset)/2):(nrow(ovarian.dataset))],]
+```
+
+```{r}
+# Contribution Statement 
+
+# Wesley Chan (75520023): did literally nothing
+# Flora Deng (): 
+# Mary Graves (): 
+```
+
