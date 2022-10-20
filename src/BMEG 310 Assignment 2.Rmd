@@ -100,6 +100,59 @@ ovarian.dataset.test <- ovarian.dataset[sample(nrow(ovarian.dataset))
 ```
 
 ```{r}
+# Question 3.1
+glm.fit <- glm(as.factor(diagnosis) ~., data = ovarian.dataset.train[,c(3:32)], family = binomial)
+
+summary(glm.fit)
+```
+
+```{r}
+glm.probs <- predict(glm.fit,ovarian.dataset.test[,c(3:32)],type = "response")
+
+glm.probs[1:5]
+```
+
+```{r}
+glm.pred <- ifelse(glm.probs > 0.5, "M", "B")
+head(ovarian.dataset.test)
+table(glm.pred,ovarian.dataset.test$diagnosis)
+mean(glm.pred == ovarian.dataset.test$diagnosis)
+```
+
+```{r}
+# Question 3.2
+ovarian.pca5 <- ovarian.pca$x[,1:5]
+ovarian.dataset.train.pc5 <- ovarian.pca5[sample(nrow(ovarian.pca5))[1:(nrow(ovarian.pca5)/2)],]
+ovarian.dataset.test.pc5 <- ovarian.pca5[sample(nrow(ovarian.pca5))[(nrow(ovarian.pca5)/2):(nrow(ovarian.pca5))],]
+
+glm.fit.pc5 <- glm(as.factor(diagnosis) ~., data = as.data.frame(ovarian.dataset.train.pc5), family = binomial)
+
+summary(glm.fit.pc5)
+```
+
+```{r}
+glm.probs.pc5 <- predict(glm.fit.pc5,as.data.frame(ovarian.dataset.test.pc5),type = "response")
+
+glm.probs.pc5[1:5]
+```
+
+```{r}
+glm.pred.pc5 <- ifelse(glm.probs.pc5 > 0.5, "M", "B")
+head(as.data.frame(ovarian.dataset.test.pc5))
+table(glm.pred.pc5,ovarian.dataset.test$diagnosis)
+mean(glm.pred.pc5 == ovarian.dataset.test$diagnosis)
+```
+
+```{r}
+# Question 3.5
+library(ROCR)
+pred.prob <- predict(glm.fit, ovarian.dataset, type="response")
+predict <- prediction(pred.prob, ovarian.dataset$diagnosis, label.ordering=c("B","M"))
+perform <- performance(predict,"tpr","fpr")
+plot(perform,colorize=TRUE)
+```
+
+```{r}
 # Contribution Statement 
 
 # Wesley Chan (75520023): did literally nothing
