@@ -33,6 +33,57 @@ head(ovarian.dataset)
 
 
 ```
+```{r}
+#Question 1.1
+ovarian.pca <- prcomp(ovarian.dataset[,c(3:32)], center = TRUE,scale. = TRUE)
+
+summary(ovarian.pca)
+
+# According to the proportion of variance in summary, 44.3% variation is associated with PC1.
+```
+
+```{r}
+# Question 1.2
+screeplot(ovarian.pca, type = "l", npcs = 30, main = "Screeplot of the 30 PCs")
+abline(h = 1, col="red")
+legend("topright", legend=c("Eigenvalue = 1"),
+       col=c("red"))
+
+cumpro <- cumsum(ovarian.pca$sdev^2 / sum(ovarian.pca$sdev^2))
+plot(cumpro[0:30], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+abline(v = 6, col="blue")
+abline(h = 0.88759, col="blue")
+legend("topleft", legend=c("Cut-off @ PC6"),
+       col=c("blue"))
+
+# Based on cumulative proportion we get in Q1.1 and plots we get, we can see that the first 6 components (PC1-PC7) has an eigenvalue > 1 and represent 90% of the variance in the data. We can preserve 90% of the variability by 6 dimensionality of the reduced feature space.
+```
+
+```{r}
+# Question 1.3
+library(devtools)
+
+remotes::install_github("vqv/ggbiplot")
+
+library(ggbiplot)
+
+ggbiplot(ovarian.pca, labels=ovarian.dataset$diagnosis ,groups = ovarian.dataset$diagnosis)
+```
+
+```{r}
+# Question 1.4
+ggplot(data = ovarian.dataset, mapping = aes(x = area, y = concavity,color = as.factor(diagnosis))) + geom_point()
+```
+
+```{r}
+# Question 1.5
+# I think the first figure is better because the distribution of points in Figure 1 is more dense and there is not much overlap
+```
+
+```{r}
+# Question 1.6
+boxplot(ovarian.pca$x)
+```
 
 ```{r}
 # Question 2 - Clustering
