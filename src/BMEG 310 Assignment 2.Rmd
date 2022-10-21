@@ -80,11 +80,6 @@ I think the first figure is better because the distribution of points in Figure 
 ### Q1.6
 
 ```{r}
-# Separate
-for(i in 1:30){
-  boxplot(ovarian.pca$x[,i])
-}
-# Total
 boxplot(ovarian.pca$x)
 ```
 
@@ -95,58 +90,90 @@ boxplot(ovarian.pca$x)
 ### Q2.1
 
 ```{r}
-data_for_kmeans <- scale(ovarian.dataset[,c(3:32)])
+library(FactoMineR)
+library(factoextra)
 
-set.seed(4987070)
-kmeans.data <- kmeans(data_for_kmeans, centers=2, nstart=50)
-ifelse(kmeans.data$cluster == 1, "B", "M")
-```
+kmeans.data <- as.data.frame(scale(ovarian.dataset[,c(3:32)]))
 
-```{r}
-cm0 <- unlist(table(kmeans.data$cluster, ovarian.dataset$diagnosis))
-cm0
-```
+set.seed(43827)
+kmeans.results = kmeans(kmeans.data, centers=2, nstart=50)
+results = table(kmeans.results$cluster, ovarian.dataset$diagnosis)
 
-```{r}
-kmeans.accuracy0 <- (cm0[1,1] + cm0[2,2]) / (cm0[1,2] + cm0[2,1])
-kmeans.precision0 <- cm0[1,1] / (cm0[1,1] + cm0[2,1])
-kmeans.recall0 <- cm0[1,1] / (cm0[1,1] + cm0[1,2])
+if (results[1] < results[2]) {
+  labels = ifelse(kmeans.results$cluster == 1, "M", "B")
+} else {
+  labels = ifelse(kmeans.results$cluster == 1, "B", "M")
+}
 
-cat("Accuracy:", kmeans.accuracy0, "\n")
-cat("Precision:", kmeans.precision0, "\n")
-cat("Recall:", kmeans.recall0, "\n")
+cm = table(labels, ovarian.dataset$diagnosis)
+
+accuracy = (cm[1]+cm[4])/(cm[1]+cm[2]+cm[3]+cm[4])
+precision = (cm[1])/(cm[1]+cm[2])
+recall = (cm[1])/(cm[1]+cm[3])
+
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Recall:", recall, "\n")
 ```
 
 ### Q2.2 
-Not getting different values when repeating kmeans...
+```{r}
+accuracies = replicate(10,0)
+
+set.seed(43827)
+for (i in 1:10) {
+  kmeans.results = kmeans(kmeans.data, centers=2, nstart=1)
+  results = table(kmeans.results$cluster, ovarian.dataset$diagnosis)
+
+  if (results[1] < results[2]) {
+    labels = ifelse(kmeans.results$cluster == 1, "M", "B")
+  } else {
+    labels = ifelse(kmeans.results$cluster == 1, "B", "M")
+  }
+
+  cm = table(labels, ovarian.dataset$diagnosis)
+  
+  accuracy = (cm[1]+cm[4])/(cm[1]+cm[2]+cm[3]+cm[4])
+  accuracies[i] = accuracy
+}
+
+cat("Accuracies of Runs:", accuracies, "\n")
+cat("Mean of Accuracies:", mean(accuracies), "\n")
+```
+
+When running kmeans clustering for this question, we set nstart=1 in the kmeans function. This causes the results to be slightly different each run, because the start points for clustering are random (and thus the clusters might be slightly different). In Q2.1, we set nstart=50, which causes R to run the clustering 50 times with random starting assignments, then select the best run based on lowest within-cluster variation. This helps alleviate the randomness in the results and give us more stable clusters, although it takes longer to run. 
 
 ### Q2.3
+For this question, we will use the method in Q2.2, with nstart=1, since we are comparing the results from this question with Q2.2. 
 
 ```{r}
 kmeans_top5pca <- ovarian.pca$x[,1:5]
+kmeans.data.pca <- data.frame(cbind(kmeans_top5pca, ovarian.dataset$diagnosis))[,c(1:5)]
 
-set.seed(46462)
-kmeans.pca_data <- kmeans(kmeans_top5pca, centers=2, nstart=50)
-ifelse(kmeans.pca_data$cluster == 1, "B", "M")
-```
+set.seed(33422) #want a different seed for this analysis
+kmeans.results.pca = kmeans(kmeans.data.pca, centers=2)
+results.pca = table(kmeans.results.pca$cluster, ovarian.dataset$diagnosis)
 
-```{r}
-cm1 <- unlist(table(kmeans.pca_data$cluster, ovarian.dataset$diagnosis))
-cm1
-```
+if (results.pca[1] < results.pca[2]) {
+  labels.pca = ifelse(kmeans.results.pca$cluster == 1, "M", "B")
+} else {
+  labels.pca = ifelse(kmeans.results.pca$cluster == 1, "B", "M")
+}
 
-```{r}
-kmeans.accuracy1 <- (cm1[1,1] + cm1[2,2]) / (cm1[1,2] + cm1[2,1])
-kmeans.precision1 <- cm1[1,1] / (cm1[1,1] + cm1[2,1])
-kmeans.recall1 <- cm1[1,1] / (cm1[1,1] + cm1[1,2])
+cm.pca = table(labels.pca, ovarian.dataset$diagnosis)
 
-cat("Accuracy:", kmeans.accuracy1, "\n")
-cat("Precision:", kmeans.precision1, "\n")
-cat("Recall:", kmeans.recall1, "\n")
+accuracy.pca = (cm.pca[1]+cm.pca[4])/(cm.pca[1]+cm.pca[2]+cm.pca[3]+cm.pca[4])
+precision.pca = (cm.pca[1])/(cm.pca[1]+cm.pca[2])
+recall.pca = (cm.pca[1])/(cm.pca[1]+cm.pca[3])
+
+cat("Accuracy:", accuracy.pca, "\n")
+cat("Precision:", precision.pca, "\n")
+cat("Recall:", recall.pca, "\n")
+
 ```
 
 ### Q2.4
-Same... doesn't seem right. 
+Between Q2.2 and Q2.3, we can see that kmeans clustering with the first five PCs has a slightly lower accuracy, since we are missing some information from the other PCs.
 
 \newpage
 
