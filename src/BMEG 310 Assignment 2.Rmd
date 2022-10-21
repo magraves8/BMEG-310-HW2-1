@@ -82,6 +82,11 @@ ggplot(data = ovarian.dataset, mapping = aes(x = area, y = concavity,color = as.
 
 ```{r}
 # Question 1.6
+# Separate
+for(i in 1:30){
+  boxplot(ovarian.pca$x[,i])
+}
+# Total
 boxplot(ovarian.pca$x)
 ```
 
