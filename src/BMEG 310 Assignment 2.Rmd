@@ -149,6 +149,16 @@ mean(glm.pred.pc5 == ovarian.dataset.test$diagnosis)
 ```
 
 ```{r}
+# Question 3.3
+# The results in Q3.2 is better since the accuracy is larger. Top 5 PCs have greater association variance.
+```
+
+```{r}
+# Question 3.4
+```
+
+
+```{r}
 # Question 3.5
 library(ROCR)
 pred.prob <- predict(glm.fit, ovarian.dataset, type="response")
