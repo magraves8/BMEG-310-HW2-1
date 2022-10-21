@@ -11,12 +11,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r warning=FALSE}
-# libraries
-library(ggplot2)
-library(ROCR)
-```
-
 ```{r}
 # loading in data
 ovarian.dataset <- read.delim("ovarian.data", sep=",", header = FALSE)
@@ -28,22 +22,24 @@ names(ovarian.dataset) <- c("cell_id", "diagnosis", features)
 head(ovarian.dataset)
 ```
 
-```{r}
-# Question 1 - Dimensionality Reduction
+\newpage
 
+# Question 1: Dimensionality Reduction
 
-```
+### Q1.1
+
 ```{r}
-#Question 1.1
 ovarian.pca <- prcomp(ovarian.dataset[,c(3:32)], center = TRUE,scale. = TRUE)
 
 summary(ovarian.pca)
-
-# According to the proportion of variance in summary, 44.3% variation is associated with PC1.
 ```
 
+According to the proportion of variance in summary, 44.3% variation is associated with PC1.
+
+
+### Q1.2
+
 ```{r}
-# Question 1.2
 screeplot(ovarian.pca, type = "l", npcs = 30, main = "Screeplot of the 30 PCs")
 abline(h = 1, col="red")
 legend("topright", legend=c("Eigenvalue = 1"),
@@ -55,33 +51,35 @@ abline(v = 6, col="blue")
 abline(h = 0.88759, col="blue")
 legend("topleft", legend=c("Cut-off @ PC6"),
        col=c("blue"))
-
-# Based on cumulative proportion we get in Q1.1 and plots we get, we can see that the first 6 components (PC1-PC7) has an eigenvalue > 1 and represent 90% of the variance in the data. We can preserve 90% of the variability by 6 dimensionality of the reduced feature space.
 ```
 
-```{r}
-# Question 1.3
+Based on cumulative proportion we get in Q1.1 and plots we get, we can see that the first 6 components (PC1-PC7) has an eigenvalue > 1 and represent 90% of the variance in the data. We can preserve 90% of the variability by 6 dimensionality of the reduced feature space.
+
+### Q1.3
+
+```{r warning=FALSE}
 library(devtools)
-
 remotes::install_github("vqv/ggbiplot")
-
 library(ggbiplot)
 
 ggbiplot(ovarian.pca, labels=ovarian.dataset$diagnosis ,groups = ovarian.dataset$diagnosis)
 ```
 
-```{r}
-# Question 1.4
-ggplot(data = ovarian.dataset, mapping = aes(x = area, y = concavity,color = as.factor(diagnosis))) + geom_point()
+### Q1.4
+
+```{r warning=FALSE}
+library(ggplot2)
+ggplot(data = ovarian.dataset, 
+       mapping = aes(x = area, y = concavity, color = as.factor(diagnosis)))+ 
+       geom_point()
 ```
 
-```{r}
-# Question 1.5
-# I think the first figure is better because the distribution of points in Figure 1 is more dense and there is not much overlap
-```
+### Q1.5
+I think the first figure is better because the distribution of points in Figure 1 is more dense and there is not much overlap. 
+
+### Q1.6
 
 ```{r}
-# Question 1.6
 # Separate
 for(i in 1:30){
   boxplot(ovarian.pca$x[,i])
@@ -90,13 +88,71 @@ for(i in 1:30){
 boxplot(ovarian.pca$x)
 ```
 
-```{r}
+\newpage
+
 # Question 2 - Clustering
+
+### Q2.1
+
+```{r}
+data_for_kmeans <- scale(ovarian.dataset[,c(3:32)])
+
+set.seed(4987070)
+kmeans.data <- kmeans(data_for_kmeans, centers=2, nstart=50)
+ifelse(kmeans.data$cluster == 1, "B", "M")
 ```
 
 ```{r}
-# Question 3 - Classification
+cm0 <- unlist(table(kmeans.data$cluster, ovarian.dataset$diagnosis))
+cm0
+```
 
+```{r}
+kmeans.accuracy0 <- (cm0[1,1] + cm0[2,2]) / (cm0[1,2] + cm0[2,1])
+kmeans.precision0 <- cm0[1,1] / (cm0[1,1] + cm0[2,1])
+kmeans.recall0 <- cm0[1,1] / (cm0[1,1] + cm0[1,2])
+
+cat("Accuracy:", kmeans.accuracy0, "\n")
+cat("Precision:", kmeans.precision0, "\n")
+cat("Recall:", kmeans.recall0, "\n")
+```
+
+### Q2.2 
+Not getting different values when repeating kmeans...
+
+### Q2.3
+
+```{r}
+kmeans_top5pca <- ovarian.pca$x[,1:5]
+
+set.seed(46462)
+kmeans.pca_data <- kmeans(kmeans_top5pca, centers=2, nstart=50)
+ifelse(kmeans.pca_data$cluster == 1, "B", "M")
+```
+
+```{r}
+cm1 <- unlist(table(kmeans.pca_data$cluster, ovarian.dataset$diagnosis))
+cm1
+```
+
+```{r}
+kmeans.accuracy1 <- (cm1[1,1] + cm1[2,2]) / (cm1[1,2] + cm1[2,1])
+kmeans.precision1 <- cm1[1,1] / (cm1[1,1] + cm1[2,1])
+kmeans.recall1 <- cm1[1,1] / (cm1[1,1] + cm1[1,2])
+
+cat("Accuracy:", kmeans.accuracy1, "\n")
+cat("Precision:", kmeans.precision1, "\n")
+cat("Recall:", kmeans.recall1, "\n")
+```
+
+### Q2.4
+Same... doesn't seem right. 
+
+\newpage
+
+# Question 3 - Classification 
+
+```{r}
 # Divide data into training set and test set
 ovarian.dataset.train <- ovarian.dataset[sample(nrow(ovarian.dataset))
   [1:(nrow(ovarian.dataset)/2)],]
@@ -104,15 +160,18 @@ ovarian.dataset.test <- ovarian.dataset[sample(nrow(ovarian.dataset))
   [(nrow(ovarian.dataset)/2):(nrow(ovarian.dataset))],]
 ```
 
+### Q3.1
+
 ```{r}
-# Question 3.1
-glm.fit <- glm(as.factor(diagnosis) ~., data = ovarian.dataset.train[,c(3:32)], family = binomial)
+glm.fit <- glm(as.factor(diagnosis)~., data = ovarian.dataset.train[,c(3:32)], 
+               family = binomial)
 
 summary(glm.fit)
 ```
 
 ```{r}
-glm.probs <- predict(glm.fit,ovarian.dataset.test[,c(3:32)],type = "response")
+glm.probs <- predict(glm.fit, ovarian.dataset.test[,c(3:32)],
+                     type = "response")
 
 glm.probs[1:5]
 ```
@@ -124,8 +183,9 @@ table(glm.pred,ovarian.dataset.test$diagnosis)
 mean(glm.pred == ovarian.dataset.test$diagnosis)
 ```
 
+### Q3.2
+
 ```{r}
-# Question 3.2
 ovarian.pca5 <- ovarian.pca$x[,1:5]
 ovarian.dataset.train.pc5 <- ovarian.pca5[sample(nrow(ovarian.pca5))[1:(nrow(ovarian.pca5)/2)],]
 ovarian.dataset.test.pc5 <- ovarian.pca5[sample(nrow(ovarian.pca5))[(nrow(ovarian.pca5)/2):(nrow(ovarian.pca5))],]
@@ -148,18 +208,20 @@ table(glm.pred.pc5,ovarian.dataset.test$diagnosis)
 mean(glm.pred.pc5 == ovarian.dataset.test$diagnosis)
 ```
 
+
+### Q3.3
+The results in Q3.2 is better since the accuracy is larger. Top 5 PCs have greater association variance.
+
+
+### Q3.4
+
 ```{r}
-# Question 3.3
-# The results in Q3.2 is better since the accuracy is larger. Top 5 PCs have greater association variance.
+# gotta do
 ```
 
-```{r}
-# Question 3.4
-```
-
+### Q3.5
 
 ```{r}
-# Question 3.5
 library(ROCR)
 pred.prob <- predict(glm.fit, ovarian.dataset, type="response")
 predict <- prediction(pred.prob, ovarian.dataset$diagnosis, label.ordering=c("B","M"))
@@ -167,8 +229,9 @@ perform <- performance(predict,"tpr","fpr")
 plot(perform,colorize=TRUE)
 ```
 
+### Q3.6
+
 ```{r}
-# Question 3.6
 library(randomForest)
 
 set.seed(123)
@@ -212,11 +275,10 @@ table(prediction.pca,testing_dataset$diagnosis)
 mean(prediction.pca == testing_dataset$diagnosis)
 ```
 
-```{r}
-# Contribution Statement 
+\newpage
 
-# Wesley Chan (75520023): did literally nothing
-# Flora Deng (): 
-# Mary Graves (): 
-```
+# Contribution Statement
 
+Wesley Chan (75520023): did literally nothing
+Flora Deng (): 
+Mary Graves (): 
