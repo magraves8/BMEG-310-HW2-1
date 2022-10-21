@@ -158,6 +158,51 @@ plot(perform,colorize=TRUE)
 ```
 
 ```{r}
+# Question 3.6
+library(randomForest)
+
+set.seed(123)
+
+chunk <- sample(nrow(ovarian.dataset), 0.5 * nrow(ovarian.dataset))
+
+training_dataset <- ovarian.dataset[chunk, ]
+
+testing_dataset <- ovarian.dataset[-chunk, ]
+```
+
+```{r}
+# Question 3.6 - (3.1)
+model <- randomForest(as.factor(diagnosis) ~ ., training_dataset)
+summary(model)
+```
+
+```{r}
+prediction <- predict(model, newdata = testing_dataset)
+prediction[1:5]
+table(prediction,testing_dataset$diagnosis)
+mean(prediction == testing_dataset$diagnosis)
+```
+
+```{r}
+# Question 3.6 - (3.2)
+training_dataset.pca <- prcomp(training_dataset[,c(3:32)], center = TRUE,scale. = TRUE)
+testing_dataset.pca <- prcomp(testing_dataset[,c(3:32)], center = TRUE,scale. = TRUE)
+
+training_dataset.pc5 <- training_dataset.pca$x[,1:5]
+testing_dataset.pc5 <- testing_dataset.pca$x[,1:5]
+
+model.testing_dataset.pc5 <- randomForest(as.factor(testing_dataset$diagnosis) ~ ., testing_dataset.pc5)
+summary(model.testing_dataset.pc5)
+```
+
+```{r}
+prediction.pca <- predict(model.testing_dataset.pc5, newdata = testing_dataset.pc5)
+prediction.pca[1:5]
+table(prediction.pca,testing_dataset$diagnosis)
+mean(prediction.pca == testing_dataset$diagnosis)
+```
+
+```{r}
 # Contribution Statement 
 
 # Wesley Chan (75520023): did literally nothing
