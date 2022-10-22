@@ -308,4 +308,4 @@ mean(prediction.pca == testing_dataset$diagnosis)
 
 Wesley Chan (75520023): did literally nothing
 Flora Deng (): 
-Mary Graves (): 
+Mary Graves (This is mary ): 
